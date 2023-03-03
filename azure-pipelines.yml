@@ -26,7 +26,7 @@ resources:
       type: github
       endpoint: GalileoDigital
       name: GalileoDigital/galileo-platform-azure-pipeline-templates
-      ref: develop
+      ref: refs/tags/v1.6.12
 
 variables:
   # PREDEV
