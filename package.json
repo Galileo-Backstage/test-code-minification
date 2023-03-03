@@ -15,7 +15,7 @@
     "build-dev": "npm run config && webpack --mode=production",
     "build-qa": "npm run config && webpack --mode=production",
     "build-uat": "npm run config && webpack --mode=production",
-    "build-prod": "npm run config && webpack --mode=production",
+    "build-prod": "webpack --mode=production",
     "test-ci": "cross-env BABEL_ENV=test jest",
     "watch-tests": "cross-env BABEL_ENV=test jest --watch",
     "coverage": "cross-env BABEL_ENV=test jest --coverage"
