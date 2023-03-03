@@ -1,0 +1,100 @@
+trigger:
+  branches:
+    include:
+      - develop
+      - release/*
+      - main
+  paths:
+    exclude:
+      - docs/*
+      - README.md
+      - azure-pipelines.yml
+
+pr:
+  branches:
+    include:
+      - develop
+      - release/*
+  paths:
+    exclude:
+      - docs/*
+      - README.md
+
+resources:
+  repositories:
+    - repository: galileo-platform-azure-pipeline-templates
+      type: github
+      endpoint: GalileoDigital
+      name: GalileoDigital/galileo-platform-azure-pipeline-templates
+      ref: develop
+
+variables:
+  # PREDEV
+  azdoEnvironmentPredev: "gal-apps-predev"
+  azureServiceConnectionIdPredev: "arm-gal-apps-predev"
+  selfHostedAgentsPredev: ""
+  storageAccountNamePredev: ""
+  # DEV
+  azdoEnvironmentDev: "gal-apps-dev"
+  azureServiceConnectionIdDev: "arm-gal-apps-dev"
+  selfHostedAgentsDev: "vmss-ado-hub-prod"
+  storageAccountNameDev: "stgalappsportaldeva887"
+  containerNameDev: "stct-gal-apps-portal-dev-a887"
+  # QA
+  azdoEnvironmentQa: "gal-apps-qa"
+  azureServiceConnectionIdQa: "arm-gal-apps-qa"
+  selfHostedAgentsQa: "vmss-ado-hub-prod"
+  storageAccountNameQa: "stgalappsportalqaaeb0"
+  containerNameQa: "stct-gal-apps-portal-qa-aeb0"
+  # UAT
+  azdoEnvironmentUat: "gal-apps-uat"
+  azureServiceConnectionIdUat: "arm-gal-apps-uat"
+  selfHostedAgentsUat: "vmss-ado-hub-prod"
+  storageAccountNameUat: "stgalappsportaluat0556"
+  containerNameUat: "stct-gal-apps-portal-uat-0556"
+  # PROD
+  azdoEnvironmentProd: "gal-apps-prod"
+  azureServiceConnectionIdProd: "arm-gal-apps-prod"
+  selfHostedAgentsProd: "vmss-ado-hub-prod"
+  storageAccountNameProd: "stgalappsportalprodc9e6"
+  containerNameProd: "stct-gal-apps-portal-prod-c9e6"
+  # COMMON
+  artifactFeed: python-packages
+  pythonVersion: 3.8
+  agentVmImage: "ubuntu-18.04"
+  azdoGitHubConnection: 'github-galileo-releases'
+  requirementsDev: "requirements/dev.txt"
+  requirementsProd: "requirements/prod.txt"
+  isPr: $[eq(variables['Build.Reason'], 'PullRequest')]
+  isDevelop: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
+  isRelease: $[startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')]
+
+stages:
+  ### Building
+
+  - stage: BuildDev
+    variables:
+      - group: vg-gal-apps-react-dev
+    jobs:
+      - template: 'Templates/GalileoPlatform-Node-Build.yml@galileo-platform-azure-pipeline-templates'
+        parameters:
+          parameterizedBuild: true
+          environment: 'dev'
+          artifactkDir: 'call-stack'
+
+    ### Deploying
+
+  - stage: DeployDev
+    dependsOn: [BuildDev]
+    condition: and(succeeded('BuildDev'), eq(variables.isDevelop, True))
+    jobs:
+      - template: 'Templates/GalileoPlatform-Node-Deploy.yml@galileo-platform-azure-pipeline-templates'
+        parameters:
+          parameterizedBuild: true
+          deploymentEnv: $(azdoEnvironmentDev)
+          environment: 'dev'
+          poolType: $(selfHostedAgentsDev)
+          platformType: 'storage'
+          storAccName: $(storageAccountNameDev)
+          containerName: $(containerNameDev)
+          azSvcConnectionId: $(azureServiceConnectionIdDev)
