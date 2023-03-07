@@ -23,11 +23,20 @@ const MainPage = () => {
     throw new Error('Test error from deployed app');
   }
 
+  const trackError = () => {
+    try {
+      throwError();
+    } catch (e) {
+      logger.appInsightsInstance.trackException(e, { name: 'Vova test'})
+    }
+  }
+
   return (
     <div className="main-container">
       <h1>Galileo logging library (React microfrontend) - test call stack minification</h1>
       <button onClick={() => trackPageView()}>Track page view</button>
       <button onClick={() => throwError()}>Throw error</button>
+      <button onClick={() => trackError()}>Track error</button>
     </div>
   );
 };
